@@ -22,8 +22,6 @@ _REQUEST_TOKEN_SUFFIX = 'services/oauth/request_token'
 _AUTHORIZE_SUFFIX = 'services/oauth/authorize'
 _ACCESS_TOKEN_SUFFIX = 'services/oauth/access_token'
 
-SCOPES = 'offline_access'
-
 _LOGGER = logging.getLogger('USOSAPI')
 _DOWNLOAD_LOGGER = logging.getLogger('USOSAPI.download')
 
@@ -83,13 +81,12 @@ class USOSAPIConnection():
     To log in as a specific user you need to get an URL address with
     get_authorization_url and somehow display it to the user (this module
     doesn't provide any UI). On the web page, after accepting
-    scopes required by the module, user will receive a PIN code.
     This code should be passed to authorize_with_pin function to
     complete the authorization process. After successfully calling the
     authorize_with_pin function, you will have an authorized_session.
     """
     def __init__(self, api_base_address: str, consumer_key: str,
-                 consumer_secret: str):
+                 consumer_secret: str, scopes = 'offline_access'):
         self.base_address = str(api_base_address)
         if not self.base_address:
             raise ValueError('Empty USOS API address.')
@@ -101,6 +98,7 @@ class USOSAPIConnection():
 
         self.consumer_key = str(consumer_key)
         self.consumer_secret = str(consumer_secret)
+        self.scopes = str(scopes)
 
         req_token_url = self.base_address + _REQUEST_TOKEN_SUFFIX
         authorize_url = self.base_address + _AUTHORIZE_SUFFIX
@@ -123,7 +121,7 @@ class USOSAPIConnection():
                                               consumer_key, consumer_secret))
 
     def _generate_request_token(self):
-        params = {'oauth_callback': 'oob', 'scopes': SCOPES}
+        params = {'oauth_callback': 'oob', 'scopes': self.scopes}
         token_tuple = self._service.get_request_token(params=params)
         self._request_token, self._request_token_secret = token_tuple
         _LOGGER.info("New request token generated: {}".format(token_tuple[0]))
